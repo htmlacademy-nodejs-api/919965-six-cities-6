@@ -1,5 +1,5 @@
 export enum RoleType {
   Unauthorized = 'unauthorized',
-  Default = 'default',
+  Common = 'common',
   Pro = 'pro',
 }
