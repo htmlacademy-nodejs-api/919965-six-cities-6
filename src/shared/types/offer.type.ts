@@ -3,7 +3,7 @@ import { User } from './user.type.js';
 import { CityType } from './city-type.enum.js';
 import { ScoreType } from './score-type.enum.js';
 import { AmenityType } from './amenity-type.enum.js';
-import { Coordinates } from './coordinates.type.js';
+import { Location } from './location.type.js';
 
 export type Offer = {
   name: string;
@@ -20,8 +20,8 @@ export type Offer = {
   maxGuests: number;
   price: string;
   amenities: AmenityType[];
-  seller: User;
+  host: User;
   commentsCount: number;
-  coordinates: Coordinates;
+  location: Location;
 };
 
