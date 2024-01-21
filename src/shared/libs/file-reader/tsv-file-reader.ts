@@ -18,8 +18,8 @@ export class TSVFileReader implements FileReader {
 
     return this.rawData
       .split('\n')
-      .filter(row => row.trim().length)
-      .map(line => line.split('\t'))
+      .filter((row) => row.trim().length)
+      .map((line) => line.split('\t'))
       .map(
         ([
           name,
