@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { OfferGenerator } from './offer-generator.interface.js';
 import { MockServerData, CityType, HousingType, AmenityType, RoleType } from '../../types/index.js';
-import { getRandomItem, getRandomItems, generateRandomValue } from '../../helpers/common.js';
+import { getRandomItem, getRandomItems, generateRandomValue } from '../../helpers/index.js';
 
 const FIRST_WEEK_DAY = 1;
 const LAST_WEEK_DAY = 7;
