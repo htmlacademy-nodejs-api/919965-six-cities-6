@@ -1,7 +1,9 @@
+import { RoleType } from '../../../types/index.js';
+
 export class CreateUserDto {
+  public name: string;
   public email: string;
-  public avatarPath: string;
-  public firstname: string;
-  public lastname: string;
+  public avatarPath?: string;
   public password: string;
+  public type: RoleType;
 }
