@@ -1,0 +1,199 @@
+openapi: 3.1.0
+info:
+  title: API сервер для демо-проекта «Куплю. Продам».
+  description: |-
+    * Список ресурсов и маршрутов сервера «Куплю. Продам».
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 2.0.0
+tags:
+  - name: offers
+    description: Действия с объявлениями.
+  - name: categories
+    description: Действия с категориями.
+  - name: comments
+    description: Действия с комментариями.
+  - name: users
+    description: Действия с пользователем.
+
+paths:
+  /users/register:
+    post:
+      tags:
+        - users
+      summary: Регистрация пользователя.
+      description: Регистрирует нового пользователя.
+
+      requestBody:
+        description: Информация для создания нового пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createUser'
+        required: true
+
+      responses:
+        "201":
+          description: Пользователь зарегистрирован. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        "400":
+          description: Ошибка валидации данных.
+        "409":
+          description: Пользователь с таким email уже существует.
+
+
+  /users/login:
+    post:
+      tags:
+        - users
+      summary: Авторизация пользователя.
+      description: Авторизует пользователя на основе логина и пароля.
+
+      requestBody:
+        description: Аутентификационные данные пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginUser'
+        required: true
+
+      responses:
+        "200":
+          description: Пользователь авторизирован. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+        "400":
+          description: Пользователь с таким email не существует.
+
+        "403":
+          description: Неверные данные аутентификации.
+
+    get:
+      tags:
+        - users
+      summary: Проверка состояния пользователя.
+      description: Возвращает информацию по авторизованному пользователю.
+
+      responses:
+        "200":
+          description: Состояние пользователя. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+        "401":
+          description: Пользователя с таким email не существует.
+
+  /users/logout:
+    post:
+      tags:
+        - users
+      summary: Завершение сессии пользователя.
+      description: Завершает сессию пользователя.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+
+      responses:
+        "204":
+          description: Сессия завершена.
+
+        "401":
+          description: Пользователь не авторизован.
+
+components:
+  schemas:
+    createUser:
+      type: object
+
+      properties:
+        name:
+          type: string
+          example: John Connor
+          required: true
+
+        email:
+          type: string
+          example: john_connor@htmlacademy.ru
+          required: true
+
+        avatarPath:
+          type: string
+          example: /img/john_connor.jpg
+          required: false
+
+        password:
+          type: string
+          example: qwerty
+          required: true
+
+        userType:
+          type: string
+          enum:
+            - common
+            - pro
+          example: common
+          required: true
+
+    user:
+      type: object
+
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+        name:
+          type: string
+          example: John Connor
+          required: true
+
+        email:
+          type: string
+          example: john_connor@htmlacademy.ru
+          required: true
+
+        avatarPath:
+          type: string
+          example: /img/john_connor.jpg
+          required: false
+
+        userType:
+          type: string
+          enum:
+            - common
+            - pro
+          example: common
+          required: true
+
+    loginUser:
+      type: object
+
+      properties:
+        email:
+          type: string
+          example: john_connor@htmlacademy.ru
+          required: true
+
+        password:
+          type: string
+          example: qwerty
+          required: true
+
+    userToken:
+      type: string
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+
