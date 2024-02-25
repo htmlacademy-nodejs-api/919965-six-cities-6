@@ -273,6 +273,191 @@ paths:
         "404":
           description: Предложение не найдено.
 
+  /offers/premium:
+    get:
+      tags:
+        - offers
+      summary: Получение списка премиальных предложений для города.
+      description: Возвращает коллекцию премиальных предложений. Не более 3х.
+
+      parameters:
+        - name: city
+          in: query
+          description: Название города
+          schema:
+              $ref: "#/components/schemas/city"
+          required: true
+
+      responses:
+        "200":
+          description: Список премиальных предложений.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/offerShort"
+
+        "404":
+          description: Предложение не найдено.
+
+  /offers/favorites:
+    get:
+      tags:
+        - offers
+      summary: Получения списка избранных предложений.
+      description: Возвращает коллекцию объектов предложений.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+
+      responses:
+        "200":
+          description: Список избранных предложений.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/offerShort"
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+
+  /offers/{offerId}/favorite:
+    post:
+      tags:
+        - offers
+      summary: Добавление предложения в избранное
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "200":
+          description: Предложение добавлено в избранное.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+    delete:
+      tags:
+        - offers
+      summary: Удаление предложения из избранного
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "204":
+          description: Предложение удалено из избранного
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+  /offers/{offerId}/comments:
+    post:
+      tags:
+        - comments
+      summary: Добавление комментария к предложению по аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      requestBody:
+        description: Объект комментария.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/comment"
+        required: true
+
+      responses:
+        "200":
+          description: Комментарий создан. Объект комментария.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/comment"
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+    get:
+      tags:
+        - comments
+      summary: Список комментариев предложения.
+      description: Возвращает список комментариев предложения.
+
+      parameters:
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "200":
+          description: Список комментариев предложения. Коллекция объектов комментария.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/comment'
+
+        "404":
+          description: Предложение не найдено.
+
 
 components:
   schemas:
@@ -379,15 +564,7 @@ components:
           example: 2024-02-25T05:50:41
 
         city:
-          type: string
-          enum:
-            - Paris
-            - Cologne
-            - Brussels
-            - Amsterdam
-            - Hamburg
-            - Dusseldorf
-          example: Paris
+          $ref: "#/components/schemas/city"
 
         previewImage:
           type: string
@@ -443,14 +620,7 @@ components:
           example: [Breakfast, Air conditioning, Laptop friendly workspace]
 
         location:
-          type: object
-          properties:
-            latitude:
-              type: number
-              example: 86.6699967372
-            longitude:
-              type: number
-              example: 96.1019629176
+          $ref: '#/components/schemas/location'
 
     offerShort:
       type: object
@@ -486,15 +656,7 @@ components:
           example: 2024-02-25T05:50:41
 
         city:
-          type: string
-          enum:
-            - Paris
-            - Cologne
-            - Brussels
-            - Amsterdam
-            - Hamburg
-            - Dusseldorf
-          example: Paris
+          $ref: "#/components/schemas/city"
 
         previewImage:
           type: string
@@ -533,15 +695,7 @@ components:
           example: 2024-02-25T05:50:41
 
         city:
-          type: string
-          enum:
-            - Paris
-            - Cologne
-            - Brussels
-            - Amsterdam
-            - Hamburg
-            - Dusseldorf
-          example: Paris
+          $ref: "#/components/schemas/city"
 
         previewImage:
           type: string
@@ -608,14 +762,7 @@ components:
           example: 10
 
         location:
-          type: object
-          properties:
-            latitude:
-              type: number
-              example: 86.6699967372
-            longitude:
-              type: number
-              example: 96.1019629176
+          $ref: '#/components/schemas/location'
 
     offerCount:
       type: string
@@ -624,3 +771,43 @@ components:
     offerId:
       type: string
       example: 123
+
+    location:
+      type: object
+      properties:
+        latitude:
+          type: number
+          example: 86.6699967372
+        longitude:
+          type: number
+          example: 96.1019629176
+
+    comment:
+      type: object
+      properties:
+        text:
+          type: string
+          example: "test comment"
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        rating:
+          type: number
+          example: 5
+
+        author:
+          $ref: "#/components/schemas/user"
+
+    city:
+      type: string
+      enum:
+        - Paris
+        - Cologne
+        - Brussels
+        - Amsterdam
+        - Hamburg
+        - Dusseldorf
+      example: Paris
+
