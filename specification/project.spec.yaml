@@ -1,0 +1,813 @@
+openapi: 3.0.0
+info:
+  title: API сервер для проекта «Шесть городов».
+  description: |-
+    * Список ресурсов и маршрутов сервера «Шесть городов».
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  version: 2.0.0
+tags:
+  - name: offers
+    description: Действия с объявлениями.
+  - name: comments
+    description: Действия с комментариями.
+  - name: users
+    description: Действия с пользователем.
+
+paths:
+  /users/register:
+    post:
+      tags:
+        - users
+      summary: Регистрация пользователя.
+      description: Регистрирует нового пользователя.
+
+      requestBody:
+        description: Информация для создания нового пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createUser'
+        required: true
+
+      responses:
+        "201":
+          description: Пользователь зарегистрирован. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        "400":
+          description: Ошибка валидации данных.
+        "409":
+          description: Пользователь с таким email уже существует.
+
+
+  /users/login:
+    post:
+      tags:
+        - users
+      summary: Авторизация пользователя.
+      description: Авторизует пользователя на основе логина и пароля.
+
+      requestBody:
+        description: Аутентификационные данные пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginUser'
+        required: true
+
+      responses:
+        "200":
+          description: Пользователь авторизирован. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+        "400":
+          description: Пользователь с таким email не существует.
+
+        "403":
+          description: Неверные данные аутентификации.
+
+    get:
+      tags:
+        - users
+      summary: Текущий пользователь.
+      description: Возвращает информацию по авторизованному пользователю.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+
+      responses:
+        "200":
+          description: Состояние пользователя. Объект пользователя.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+        "401":
+          description: Пользователя с таким email не существует.
+
+  /users/logout:
+    post:
+      tags:
+        - users
+      summary: Завершение сессии пользователя.
+      description: Завершает сессию пользователя.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+
+      responses:
+        "204":
+          description: Сессия завершена.
+
+        "401":
+          description: Пользователь не авторизован.
+
+  /offers:
+    post:
+      tags:
+        - offers
+      summary: Создание предложения.
+      description: Создает предложение об аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+
+      responses:
+        "201":
+          description: Предложение создано. Объект предложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createOffer'
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+
+    get:
+      tags:
+        - offers
+      summary: Список предложений.
+      description: Возвращает список предложений.
+
+      parameters:
+        - name: count
+          description: Количество предложений.
+          in: query
+          schema:
+            $ref: '#/components/schemas/offerCount'
+          required: false
+
+      responses:
+        "200":
+          description: Список предложений.
+          content:
+            application-json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/offerShort'
+
+  /offers/{offerId}:
+    get:
+      tags:
+        - offers
+      summary: Предложение об аренде.
+      description: Возвращает предложение об аренде.
+
+      parameters:
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "200":
+          description: Объект предложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+        "404":
+          description: Предложение не найдено.
+
+    patch:
+      tags:
+        - offers
+      summary: Редактирование предложения.
+      description: Редактирует предложение об аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      requestBody:
+        description: Объект редактируемого предложения.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/offer"
+        required: true
+
+      responses:
+        "200":
+          description: Объект отредактированного предложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+
+    delete:
+      tags:
+        - offers
+      summary: Удаляет предложение.
+      description: Удаляет предложение об аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "204":
+          description: Предложение удалено.
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+  /offers/premium:
+    get:
+      tags:
+        - offers
+      summary: Получение списка премиальных предложений для города.
+      description: Возвращает коллекцию премиальных предложений. Не более 3х.
+
+      parameters:
+        - name: city
+          in: query
+          description: Название города
+          schema:
+              $ref: "#/components/schemas/city"
+          required: true
+
+      responses:
+        "200":
+          description: Список премиальных предложений.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/offerShort"
+
+        "404":
+          description: Предложение не найдено.
+
+  /offers/favorites:
+    get:
+      tags:
+        - offers
+      summary: Получения списка избранных предложений.
+      description: Возвращает коллекцию объектов предложений.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+
+      responses:
+        "200":
+          description: Список избранных предложений.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/offerShort"
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+
+  /offers/{offerId}/favorite:
+    post:
+      tags:
+        - offers
+      summary: Добавление предложения в избранное
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "200":
+          description: Предложение добавлено в избранное.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+    delete:
+      tags:
+        - offers
+      summary: Удаление предложения из избранного
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "204":
+          description: Предложение удалено из избранного
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+  /offers/{offerId}/comments:
+    post:
+      tags:
+        - comments
+      summary: Добавление комментария к предложению по аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      requestBody:
+        description: Объект комментария.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/comment"
+        required: true
+
+      responses:
+        "200":
+          description: Комментарий создан. Объект комментария.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/comment"
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+    get:
+      tags:
+        - comments
+      summary: Список комментариев предложения.
+      description: Возвращает список комментариев предложения.
+
+      parameters:
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "200":
+          description: Список комментариев предложения. Коллекция объектов комментария.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/comment'
+
+        "404":
+          description: Предложение не найдено.
+
+
+components:
+  schemas:
+    createUser:
+      type: object
+
+      properties:
+        name:
+          type: string
+          example: John Connor
+
+        email:
+          type: string
+          example: john_connor@htmlacademy.ru
+
+        avatarPath:
+          type: string
+          example: /img/john_connor.jpg
+
+        password:
+          type: string
+          example: qwerty
+
+        userType:
+          type: string
+          enum:
+            - common
+            - pro
+          example: common
+
+      required:
+        - name
+        - email
+        - password
+        - userType
+
+    user:
+      type: object
+
+      properties:
+        id:
+          type: string
+          example: 6329c3d6a04ab1061c6425ea
+
+        name:
+          type: string
+          example: John Connor
+
+        email:
+          type: string
+          example: john_connor@htmlacademy.ru
+
+        avatarPath:
+          type: string
+          example: /img/john_connor.jpg
+
+        userType:
+          type: string
+          enum:
+            - common
+            - pro
+          example: common
+
+      required:
+        - id
+        - name
+        - email
+        - userType
+
+    loginUser:
+      type: object
+
+      properties:
+        email:
+          type: string
+          example: john_connor@htmlacademy.ru
+
+        password:
+          type: string
+          example: qwerty
+
+      required:
+        - email
+        - password
+
+    userToken:
+      type: string
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+
+    createOffer:
+      type: object
+
+      properties:
+        name:
+          type: string
+          example: Start summer off in your new apartment home with POOL VIEW!
+
+        description:
+          type: string
+          example: 4 Bedroom 2.5 Bathroom custom hillside home with picturesque backyard in Temecula (Property Description) The custom-designed home features rustic wood-beamed ceilings, reclaimed hardwood floors, and two primary suites. Enjoy the panoramic views of Temecula’s Wine Country from your oversized lot with a heated pool and waterfall spa. It is located near Old Town and top-rated schools.
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        city:
+          $ref: "#/components/schemas/city"
+
+        previewImage:
+          type: string
+          example: img/apartment-01.jpg
+
+        images:
+          type: array
+          items:
+            type: string
+          example: [img/apartment-01.jpg, img/apartment-02.jpg]
+
+        isPremium:
+          type: boolean
+          example: true
+
+        isFavorite:
+          type: boolean
+          example: false
+
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: hotel
+
+        roomsCount:
+          type: number
+          example: 3
+
+        maxGuests:
+          type: number
+          example: 3
+
+        price:
+          type: number
+          example: 50000
+
+        amenities:
+          type: array
+          items:
+            type: string
+          enum:
+           - Breakfast
+           - Air conditioning
+           - Laptop friendly workspace
+           - Baby seat
+           - Washer
+           - Towels
+           - Fridge
+          example: [Breakfast, Air conditioning, Laptop friendly workspace]
+
+        location:
+          $ref: '#/components/schemas/location'
+
+    offerShort:
+      type: object
+
+      properties:
+        id:
+          type: number
+          example: 1
+
+        name:
+          type: string
+          example: Start summer off in your new apartment home with POOL VIEW!
+
+        price:
+          type: number
+          example: 50000
+
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: hotel
+
+        isFavorite:
+          type: boolean
+          example: false
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        city:
+          $ref: "#/components/schemas/city"
+
+        previewImage:
+          type: string
+          example: img/apartment-01.jpg
+
+        isPremium:
+          type: boolean
+          example: true
+
+        rating:
+          type: number
+          example: 5
+
+        commentsCount:
+          type: number
+          example: 10
+
+    offer:
+      type: object
+
+      properties:
+        id:
+          type: number
+          example: 1
+
+        name:
+          type: string
+          example: Start summer off in your new apartment home with POOL VIEW!
+
+        description:
+          type: string
+          example: 4 Bedroom 2.5 Bathroom custom hillside home with picturesque backyard in Temecula (Property Description) The custom-designed home features rustic wood-beamed ceilings, reclaimed hardwood floors, and two primary suites. Enjoy the panoramic views of Temecula’s Wine Country from your oversized lot with a heated pool and waterfall spa. It is located near Old Town and top-rated schools.
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        city:
+          $ref: "#/components/schemas/city"
+
+        previewImage:
+          type: string
+          example: img/apartment-01.jpg
+
+        images:
+          type: array
+          items:
+            type: string
+          example: [img/apartment-01.jpg, img/apartment-02.jpg]
+
+        isPremium:
+          type: boolean
+          example: true
+
+        isFavorite:
+          type: boolean
+          example: false
+
+        rating:
+          type: number
+          example: 5
+
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: hotel
+
+        roomsCount:
+          type: number
+          example: 3
+
+        maxGuests:
+          type: number
+          example: 3
+
+        price:
+          type: number
+          example: 50000
+
+        amenities:
+          type: array
+          items:
+            type: string
+          enum:
+           - Breakfast
+           - Air conditioning
+           - Laptop friendly workspace
+           - Baby seat
+           - Washer
+           - Towels
+           - Fridge
+          example: [Breakfast, Air conditioning, Laptop friendly workspace]
+
+        host:
+          $ref: '#/components/schemas/user'
+
+        commentsCount:
+          type: number
+          example: 10
+
+        location:
+          $ref: '#/components/schemas/location'
+
+    offerCount:
+      type: string
+      example: 123
+
+    offerId:
+      type: string
+      example: 123
+
+    location:
+      type: object
+      properties:
+        latitude:
+          type: number
+          example: 86.6699967372
+        longitude:
+          type: number
+          example: 96.1019629176
+
+    comment:
+      type: object
+      properties:
+        text:
+          type: string
+          example: "test comment"
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        rating:
+          type: number
+          example: 5
+
+        author:
+          $ref: "#/components/schemas/user"
+
+    city:
+      type: string
+      enum:
+        - Paris
+        - Cologne
+        - Brussels
+        - Amsterdam
+        - Hamburg
+        - Dusseldorf
+      example: Paris
+
