@@ -1,8 +1,8 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
-  title: API сервер для демо-проекта «Куплю. Продам».
+  title: API сервер для проекта «Шесть городов».
   description: |-
-    * Список ресурсов и маршрутов сервера «Куплю. Продам».
+    * Список ресурсов и маршрутов сервера «Шесть городов».
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -10,8 +10,6 @@ info:
 tags:
   - name: offers
     description: Действия с объявлениями.
-  - name: categories
-    description: Действия с категориями.
   - name: comments
     description: Действия с комментариями.
   - name: users
@@ -78,8 +76,16 @@ paths:
     get:
       tags:
         - users
-      summary: Проверка состояния пользователя.
+      summary: Текущий пользователь.
       description: Возвращает информацию по авторизованному пользователю.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
 
       responses:
         "200":
@@ -114,6 +120,160 @@ paths:
         "401":
           description: Пользователь не авторизован.
 
+  /offers:
+    post:
+      tags:
+        - offers
+      summary: Создание предложения.
+      description: Создает предложение об аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+
+      responses:
+        "201":
+          description: Предложение создано. Объект предложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createOffer'
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+
+    get:
+      tags:
+        - offers
+      summary: Список предложений.
+      description: Возвращает список предложений.
+
+      parameters:
+        - name: count
+          description: Количество предложений.
+          in: query
+          schema:
+            $ref: '#/components/schemas/offerCount'
+          required: false
+
+      responses:
+        "200":
+          description: Список предложений.
+          content:
+            application-json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/offerShort'
+
+  /offers/{offerId}:
+    get:
+      tags:
+        - offers
+      summary: Предложение об аренде.
+      description: Возвращает предложение об аренде.
+
+      parameters:
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "200":
+          description: Объект предложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+        "404":
+          description: Предложение не найдено.
+
+    patch:
+      tags:
+        - offers
+      summary: Редактирование предложения.
+      description: Редактирует предложение об аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      requestBody:
+        description: Объект редактируемого предложения.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/offer"
+        required: true
+
+      responses:
+        "200":
+          description: Объект отредактированного предложения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offer'
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+
+    delete:
+      tags:
+        - offers
+      summary: Удаляет предложение.
+      description: Удаляет предложение об аренде.
+
+      parameters:
+        - name: Authorization
+          description: Токен пользователя.
+          in: header
+          schema:
+            $ref: '#/components/schemas/userToken'
+          required: true
+        - name: offerId
+          in: path
+          description: Id предложения об аренде.
+          schema:
+            $ref: '#/components/schemas/offerId'
+          required: true
+
+      responses:
+        "204":
+          description: Предложение удалено.
+        "400":
+          description: Ошибка данных.
+        "401":
+          description: Пользователь не авторизован.
+        "403":
+          description: Неверные данные аутентификации.
+        "404":
+          description: Предложение не найдено.
+
+
 components:
   schemas:
     createUser:
@@ -123,22 +283,18 @@ components:
         name:
           type: string
           example: John Connor
-          required: true
 
         email:
           type: string
           example: john_connor@htmlacademy.ru
-          required: true
 
         avatarPath:
           type: string
           example: /img/john_connor.jpg
-          required: false
 
         password:
           type: string
           example: qwerty
-          required: true
 
         userType:
           type: string
@@ -146,7 +302,12 @@ components:
             - common
             - pro
           example: common
-          required: true
+
+      required:
+        - name
+        - email
+        - password
+        - userType
 
     user:
       type: object
@@ -159,17 +320,14 @@ components:
         name:
           type: string
           example: John Connor
-          required: true
 
         email:
           type: string
           example: john_connor@htmlacademy.ru
-          required: true
 
         avatarPath:
           type: string
           example: /img/john_connor.jpg
-          required: false
 
         userType:
           type: string
@@ -177,7 +335,12 @@ components:
             - common
             - pro
           example: common
-          required: true
+
+      required:
+        - id
+        - name
+        - email
+        - userType
 
     loginUser:
       type: object
@@ -186,14 +349,278 @@ components:
         email:
           type: string
           example: john_connor@htmlacademy.ru
-          required: true
 
         password:
           type: string
           example: qwerty
-          required: true
+
+      required:
+        - email
+        - password
 
     userToken:
       type: string
       example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 
+    createOffer:
+      type: object
+
+      properties:
+        name:
+          type: string
+          example: Start summer off in your new apartment home with POOL VIEW!
+
+        description:
+          type: string
+          example: 4 Bedroom 2.5 Bathroom custom hillside home with picturesque backyard in Temecula (Property Description) The custom-designed home features rustic wood-beamed ceilings, reclaimed hardwood floors, and two primary suites. Enjoy the panoramic views of Temecula’s Wine Country from your oversized lot with a heated pool and waterfall spa. It is located near Old Town and top-rated schools.
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+          example: Paris
+
+        previewImage:
+          type: string
+          example: img/apartment-01.jpg
+
+        images:
+          type: array
+          items:
+            type: string
+          example: [img/apartment-01.jpg, img/apartment-02.jpg]
+
+        isPremium:
+          type: boolean
+          example: true
+
+        isFavorite:
+          type: boolean
+          example: false
+
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: hotel
+
+        roomsCount:
+          type: number
+          example: 3
+
+        maxGuests:
+          type: number
+          example: 3
+
+        price:
+          type: number
+          example: 50000
+
+        amenities:
+          type: array
+          items:
+            type: string
+          enum:
+           - Breakfast
+           - Air conditioning
+           - Laptop friendly workspace
+           - Baby seat
+           - Washer
+           - Towels
+           - Fridge
+          example: [Breakfast, Air conditioning, Laptop friendly workspace]
+
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              example: 86.6699967372
+            longitude:
+              type: number
+              example: 96.1019629176
+
+    offerShort:
+      type: object
+
+      properties:
+        id:
+          type: number
+          example: 1
+
+        name:
+          type: string
+          example: Start summer off in your new apartment home with POOL VIEW!
+
+        price:
+          type: number
+          example: 50000
+
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: hotel
+
+        isFavorite:
+          type: boolean
+          example: false
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+          example: Paris
+
+        previewImage:
+          type: string
+          example: img/apartment-01.jpg
+
+        isPremium:
+          type: boolean
+          example: true
+
+        rating:
+          type: number
+          example: 5
+
+        commentsCount:
+          type: number
+          example: 10
+
+    offer:
+      type: object
+
+      properties:
+        id:
+          type: number
+          example: 1
+
+        name:
+          type: string
+          example: Start summer off in your new apartment home with POOL VIEW!
+
+        description:
+          type: string
+          example: 4 Bedroom 2.5 Bathroom custom hillside home with picturesque backyard in Temecula (Property Description) The custom-designed home features rustic wood-beamed ceilings, reclaimed hardwood floors, and two primary suites. Enjoy the panoramic views of Temecula’s Wine Country from your oversized lot with a heated pool and waterfall spa. It is located near Old Town and top-rated schools.
+
+        publishDate:
+          type: string
+          example: 2024-02-25T05:50:41
+
+        city:
+          type: string
+          enum:
+            - Paris
+            - Cologne
+            - Brussels
+            - Amsterdam
+            - Hamburg
+            - Dusseldorf
+          example: Paris
+
+        previewImage:
+          type: string
+          example: img/apartment-01.jpg
+
+        images:
+          type: array
+          items:
+            type: string
+          example: [img/apartment-01.jpg, img/apartment-02.jpg]
+
+        isPremium:
+          type: boolean
+          example: true
+
+        isFavorite:
+          type: boolean
+          example: false
+
+        rating:
+          type: number
+          example: 5
+
+        type:
+          type: string
+          enum:
+            - apartment
+            - house
+            - room
+            - hotel
+          example: hotel
+
+        roomsCount:
+          type: number
+          example: 3
+
+        maxGuests:
+          type: number
+          example: 3
+
+        price:
+          type: number
+          example: 50000
+
+        amenities:
+          type: array
+          items:
+            type: string
+          enum:
+           - Breakfast
+           - Air conditioning
+           - Laptop friendly workspace
+           - Baby seat
+           - Washer
+           - Towels
+           - Fridge
+          example: [Breakfast, Air conditioning, Laptop friendly workspace]
+
+        host:
+          $ref: '#/components/schemas/user'
+
+        commentsCount:
+          type: number
+          example: 10
+
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+              example: 86.6699967372
+            longitude:
+              type: number
+              example: 96.1019629176
+
+    offerCount:
+      type: string
+      example: 123
+
+    offerId:
+      type: string
+      example: 123
